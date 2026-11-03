@@ -121,8 +121,9 @@ static void bt_hid_ps5_init_callback(void *arg) {
         /* Init output data for Rumble/LED feedback */
         memset(set_conf, 0x00, sizeof(*set_conf));
         set_conf->conf0 = 0x02;
-        set_conf->cmd = 0x03;
+        set_conf->cmd = 0x02;
         set_conf->conf1 = 0x04;
+        set_conf->use_accurate_rumble = 0x04;
         set_conf->leds = hw_config.ps_ctrl_colors[device->ids.out_idx];
 
         struct bt_hidp_ps5_set_conf ps5_clear_led = {
