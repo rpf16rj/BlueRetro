@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BlueRetro Config</title>
+<style>
+:root{--bg:#0f172a;--panel:#1e293b;--panel2:#16202e;--border:#334155;--txt:#e2e8f0;--mut:#94a3b8;--acc:#3b82f6;--acc2:#2563eb;--ok:#22c55e;--err:#ef4444;--warn:#eab308}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.45}
+header{display:flex;align-items:center;gap:.75rem;padding:.9rem 1.25rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(15,23,42,.92);backdrop-filter:blur(6px);z-index:10}
+header h1{font-size:1.15rem;font-weight:700}
+header .sub{color:var(--mut);font-size:.8rem}
+.pill{margin-left:auto;display:flex;align-items:center;gap:.4rem;padding:.3rem .8rem;border-radius:999px;border:1px solid var(--border);font-size:.8rem;color:var(--mut)}
+.pill .dot{width:9px;height:9px;border-radius:50%;background:var(--err)}
+.pill.on .dot{background:var(--ok)}
+.pill.on{color:var(--txt)}
+main{max-width:1100px;margin:0 auto;padding:1.25rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1rem}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:.75rem;overflow:hidden}
+.panel.wide{grid-column:1/-1}
+.pt{display:flex;align-items:center;gap:.55rem;padding:.75rem 1rem;border-bottom:1px solid var(--border);font-weight:600;font-size:.95rem;background:var(--panel2)}
+.pt svg{stroke:var(--acc);flex:none}
+.pb{padding:1rem;display:flex;flex-direction:column;gap:.75rem}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{color:var(--mut);font-weight:600;text-align:left;padding:.35rem .4rem;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:.35rem .4rem;border-bottom:1px solid #26354a;vertical-align:middle}
+tr:last-child td{border-bottom:0}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:.45rem .9rem;border-radius:.5rem;border:1px solid var(--border);background:transparent;color:var(--txt);font-size:.85rem;cursor:pointer;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--acc)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.pri:hover{background:var(--acc2)}
+.btn.dng{color:#fca5a5;border-color:#7f1d1d}
+.btn.dng:hover{background:#7f1d1d33}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:.2rem .55rem;font-size:.78rem}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:.25rem .9rem;font-size:.85rem}
+.kv b{color:var(--mut);font-weight:500}
+select,input[type=text],input[type=number],input[type=file]{background:var(--panel2);border:1px solid var(--border);color:var(--txt);border-radius:.45rem;padding:.35rem .5rem;font-size:.85rem}
+select:focus,input:focus{outline:none;border-color:var(--acc)}
+input[type=number]{width:5.5rem}
+input[type=file]{font-size:.75rem}
+.field{display:flex;flex-direction:column;gap:.3rem;min-width:0}
+.field label{font-size:.72rem;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem}
+.note{font-size:.78rem;color:var(--mut)}
+.bar{height:6px;background:var(--panel2);border-radius:3px;overflow:hidden}
+.bar>div{height:100%;background:var(--acc);width:0%;transition:width .15s}
+.tag{display:inline-block;padding:.1rem .45rem;border-radius:999px;font-size:.7rem;border:1px solid var(--border);color:var(--mut)}
+.tag.on{color:#86efac;border-color:#166534}
+.tag.off{color:#fca5a5;border-color:#7f1d1d}
+.scrollx{overflow-x:auto}
+footer{padding:1rem;text-align:center;color:var(--mut);font-size:.75rem}
+</style>
+</head>
+<body>
+<header>
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M6 12h4m-2-2v4m7-4h.01M18 13h.01M17.32 5H6.68a5 5 0 0 0-4.9 6.05l.82 4.1a3 3 0 0 0 5.32 1.63l1.5-1.78h5.16l1.5 1.78a3 3 0 0 0 5.32-1.63l.82-4.1A5 5 0 0 0 17.32 5z"/></svg>
+<h1>BlueRetro Config</h1><span class="sub" id="fwver"></span>
+<span class="pill" id="pill"><span class="dot"></span><span id="pilltxt">Connecting…</span></span>
+</header>
+<main>
+
+<div class="panel"><div class="pt"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg>Firmware</div>
+<div class="pb"><div class="kv" id="fwinfo"></div></div></div>
+
+<div class="panel wide"><div class="pt"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 12h4m-2-2v4m7-4h.01M18 13h.01M17.32 5H6.68a5 5 0 0 0-4.9 6.05l.82 4.1a3 3 0 0 0 5.32 1.63l1.5-1.78h5.16l1.5 1.78a3 3 0 0 0 5.32-1.63l.82-4.1A5 5 0 0 0 17.32 5z"/></svg>Controllers</div>
+<div class="pb">
+<div class="row">
+<button class="btn pri" id="btnPair">Start pairing</button>
+<button class="btn" id="btnRefreshDevs">Refresh</button>
+<button class="btn dng" id="btnForget">Forget all pairings</button>
+<span class="tag" id="inqtag"></span>
+</div>
+<div class="scrollx"><table><thead><tr><th>Slot</th><th>Name</th><th>Type</th><th>Output</th><th>Address</th><th>Status</th><th></th></tr></thead><tbody id="devtable"></tbody></table></div>
+</div></div>
+
+<div class="panel"><div class="pt"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/></svg>Output ports</div>
+<div class="pb"><div class="scrollx"><table><thead><tr><th>Port</th><th>Device mode</th><th>Accessory</th></tr></thead><tbody id="outtable"></tbody></table></div>
+<button class="btn pri" id="btnOutSave">Save</button></div></div>
+
+<div class="panel"><div class="pt"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>System</div>
+<div class="pb">
+<div class="grid2">
+<div class="field"><label>System</label><select id="g_system"></select></div>
+<div class="field"><label>Multitap</label><select id="g_mt"><option value="0">Off</option><option value="1">Multitap (port1)</option><option value="2">Multitap (port2)</option><option value="3">Double multitap</option></select></div>
+<div class="field"><label>Inquiry mode</label><select id="g_inq"><option value="0">Auto</option><option value="1">Manual</option></select></div>
+<div class="field"><label>Bank select</label><input type="number" id="g_bank" min="0" max="255"></div>
+</div>
+<button class="btn pri" id="btnGlobalSave">Save</button>
+<div class="row">
+<button class="btn" id="btnReboot">Restart adapter</button>
+<button class="btn" id="btnSleep">Deep sleep</button>
+<button class="btn dng" id="btnFactory">Factory reset</button>
+</div>
+<div class="field"><label>Firmware update (.bin)</label>
+<div class="row"><input type="file" id="otafile" accept=".bin"><button class="btn" id="btnOta">Upload</button></div>
+<div class="bar"><div id="otabar"></div></div></div>
+</div></div>
+
+<div class="panel wide"><div class="pt"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Button mapping</div>
+<div class="pb">
+<div class="row">
+<div class="field"><label>Input device slot</label><select id="mapDev"></select></div>
+<button class="btn" id="btnMapLoad">Load</button>
+<button class="btn pri" id="btnMapSave">Save</button>
+<button class="btn" id="btnMapAdd">+ Add entry</button>
+</div>
+<div class="grid2">
+<div class="field"><label>Bound device type</label><input type="number" id="inDevId" min="0" max="255"></div>
+<div class="field"><label>Bound subtype</label><input type="number" id="inSubId" min="0" max="255"></div>
+</div>
+<div class="scrollx"><table><thead><tr><th>Source</th><th>Dest</th><th>Dest ID</th><th>Max %</th><th>Thresh %</th><th>DZ %</th><th>Turbo</th><th>Algo</th><th></th></tr></thead><tbody id="maptable"></tbody></table></div>
+<div class="note">Source/Dest use the generic pad button ids. Dest ID examples (PSX): 0x41 digital pad, 0x73 analog pad, 0x12 mouse, 0x80 neGcon, 0x23 racing, 0xE3 guncon.</div>
+</div></div>
+
+<div class="panel wide"><div class="pt"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M9 7h6"/></svg>Memory card</div>
+<div class="pb">
+<div class="row">
+<button class="btn pri" id="btnMcDl">Download image (.mcr)</button>
+<input type="file" id="mcfile" accept=".mcr,.bin">
+<button class="btn" id="btnMcUl">Upload image</button>
+<button class="btn" id="btnMcScan">List saves</button>
+</div>
+<div class="bar"><div id="mcbar"></div></div>
+<div class="scrollx"><table><thead><tr><th>Slot</th><th>Product</th><th>Title</th><th>Blocks</th><th></th></tr></thead><tbody id="mctable"></tbody></table></div>
+<div class="note">Saves marked (deleted) can be restored by re-uploading an image. Deleting a save marks its blocks free.</div>
+</div></div>
+
+<div class="panel"><div class="pt"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M13 2v7h7"/></svg>Filesystem</div>
+<div class="pb">
+<button class="btn" id="btnDirRefresh">Refresh</button>
+<div class="scrollx"><table><tbody id="filetable"></tbody></table></div>
+<div class="note">linkkeys.bin / le_linkkeys.bin store controller pairings. Deleting them unpairs all controllers (reset required).</div>
+</div></div>
+
+</main>
+<footer>BlueRetro experimental firmware · WiFi config AP</footer>
+
+<script>
+"use strict";
+/* ---------- helpers ---------- */
+function b64enc(b){let s="";for(let i=0;i<b.length;i+=3){let n=(b[i]<<16)|((b[i+1]||0)<<8)|(b[i+2]||0);s+="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[n>>18&63]+"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[n>>12&63]+(i+1<b.length?"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[n>>6&63]:"=")+(i+2<b.length?"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[n&63]:"=")}return s}
+function b64dec(s){s=s.replace(/=+$/,"");let n=s.length,b=Math.floor(n*3/4),o=new Uint8Array(b);for(let i=0,j=0;i<n;i+=4){let v="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".indexOf(s[i])<<18|"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".indexOf(s[i+1])<<12|(s[i+2]?("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".indexOf(s[i+2])<<6):0)|(s[i+3]?"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".indexOf(s[i+3]):0);o[j++]=v>>16&255;if(i+2<n)o[j++]=v>>8&255;if(i+3<n)o[j++]=v&255}return o}
+function dl(name,data){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data]));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+/* ---------- ws api ---------- */
+let ws=null,seq=0,pend={};
+function conn(){
+  const pill=document.getElementById("pill"),pt=document.getElementById("pilltxt");
+  ws=new WebSocket("ws://"+location.host+"/ws");
+  ws.onopen=()=>{pill.classList.add("on");pt.textContent="Connected";boot()};
+  ws.onclose=()=>{pill.classList.remove("on");pt.textContent="Disconnected";Object.keys(pend).forEach(k=>pend[k].rej(new Error("closed")));pend={};setTimeout(conn,2000)};
+  ws.onerror=()=>ws.close();
+  ws.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch{return}let p=pend[m.id];if(p){delete pend[m.id];m.ok===false?p.rej(new Error(m.err||"error")):p.res(m)}};
+}
+function api(op,args){return new Promise((res,rej)=>{let id=++seq;pend[id]={res,rej};ws.send(JSON.stringify(Object.assign({id,op},args||{})))})}
+/* ---------- data ---------- */
+const PAD=["LX-","LX+","LY+","LY-","RX-","RX+","RY+","RY-","DL","DR","DD","DU","RL","RR","RD","RU","BL","BR","BD","BU","MM","MS","MT","MQ","LM","LS","LT","LJ","RM","RS","RT","RJ"];
+const PADLBL=["LX Left","LX Right","LY Down","LY Up","RX Left","RX Right","RY Down","RY Up","D Left","D Right","D Down","D Up","R Left","R Right","R Down","R Up","B Left","B Right","B Down","B Up","Meta","Start","Meta TL","Meta QR","L Mid","L Sh","L Tr","L Joy","R Mid","R Sh","R Tr","R Joy"];
+const SYS=["Auto","Parallel 1P","Parallel 2P","NES","PC Engine","Genesis","SNES","CD-i","CD32","3DO","Jaguar","PSX","Saturn","PC-FX","JVS","N64","Dreamcast","PS2","GameCube","Wii Ext","Virtual Boy","Parallel 1P OD","Parallel 2P OD","Sea Board"];
+const DEVMODE=["GamePad","GamePadAlt","Keyboard","Mouse"];
+const ACC=["None","Memory","Rumble","Memory+Rumble"];
+const BTT={"-1":"None","0":"Generic HID","1":"PS3","2":"Wii","3":"PS4/PS5","4":"Switch","5":"Switch 2"};
+const LEDC=["Blue","Red","Green","Pink","Cyan","Orange","Yellow","Purple"];
+let info={};
+/* ---------- boot ---------- */
+async function boot(){
+  try{
+    info=await api("info");
+    document.getElementById("fwver").textContent=info.name+" "+info.fw;
+    let kv=document.getElementById("fwinfo");
+    kv.innerHTML=`<b>Device</b><span>${esc(info.name)}</span><b>Version</b><span>${esc(info.fw)}</span><b>ABI</b><span>${info.abi}</span><b>BD addr</b><span class="mono">${esc(info.bdaddr)}</span><b>System</b><span>${SYS[info.sysid]||info.sysid}</span><b>Game ID</b><span class="mono">${esc(info.gameid||"-")}</span><b>Cfg src</b><span>${info.cfgsrc?"game":"default"}</span>`;
+    refreshDevs();loadGlobal();loadOut();refreshDir();
+  }catch(e){}
+}
+/* ---------- controllers ---------- */
+async function refreshDevs(){
+  try{
+    let r=await api("dev_list");
+    document.getElementById("inqtag").textContent=r.inq?"Pairing active":"";
+    let tb=document.getElementById("devtable");tb.innerHTML="";
+    if(!r.devs.length)tb.innerHTML=`<tr><td colspan="7" class="note">No controllers</td></tr>`;
+    for(const d of r.devs){
+      let tr=document.createElement("tr");
+      tr.innerHTML=`<td>${d.id}</td><td>${esc(d.name||"—")}</td><td>${BTT[d.type]||d.type}${d.subtype?" / 0x"+d.subtype.toString(16):""}</td><td>${d.out>=0?"P"+(d.out+1)+" ("+(LEDC[d.out]||"")+")":"—"}</td><td class="mono">${d.bdaddr}</td><td><span class="tag ${d.active?"on":"off"}">${d.active?"active":"idle"}</span></td><td><button class="btn sm dng" data-disc="${d.id}">Disconnect</button></td>`;
+      tb.appendChild(tr);
+    }
+    tb.querySelectorAll("[data-disc]").forEach(b=>b.onclick=async()=>{await api("dev_disc",{dev:+b.dataset.disc});setTimeout(refreshDevs,600)});
+  }catch(e){}
+}
+document.getElementById("btnPair").onclick=async()=>{await api("pair");setTimeout(refreshDevs,800)};
+document.getElementById("btnRefreshDevs").onclick=refreshDevs;
+document.getElementById("btnForget").onclick=async()=>{
+  if(!confirm("Delete all saved pairings and restart?"))return;
+  for(const f of ["linkkeys.bin","le_linkkeys.bin"])try{await api("del",{file:f})}catch(e){}
+  api("sys",{cmd:"reset"});
+};
+/* ---------- output ports ---------- */
+async function loadOut(){
+  let tb=document.getElementById("outtable");tb.innerHTML="";
+  for(let p=0;p<8;p++){
+    let r;try{r=await api("out_get",{port:p})}catch(e){break}
+    let d=b64dec(r.data);
+    let tr=document.createElement("tr");
+    tr.innerHTML=`<td>P${p+1}</td><td><select id="odm${p}">${DEVMODE.map((v,i)=>`<option value="${i}"${i===d[0]?" selected":""}>${v}</option>`).join("")}</select></td><td><select id="oam${p}">${ACC.map((v,i)=>`<option value="${i}"${i===d[1]?" selected":""}>${v}</option>`).join("")}</select></td>`;
+    tb.appendChild(tr);
+  }
+}
+document.getElementById("btnOutSave").onclick=async()=>{
+  for(let p=0;p<8;p++){
+    let d=new Uint8Array([+document.getElementById("odm"+p).value,+document.getElementById("oam"+p).value]);
+    await api("out_set",{port:p,data:b64enc(d)});
+  }
+  alert("Saved. Restart the adapter to apply.");
+};
+/* ---------- global ---------- */
+async function loadGlobal(){
+  let r=await api("glbl_get"),d=b64dec(r.data);
+  let s=document.getElementById("g_system");
+  s.innerHTML=SYS.map((v,i)=>`<option value="${i}">${v}</option>`).join("");
+  s.value=d[0];document.getElementById("g_mt").value=d[1];
+  document.getElementById("g_inq").value=d[2];document.getElementById("g_bank").value=d[3];
+}
+document.getElementById("btnGlobalSave").onclick=async()=>{
+  let d=new Uint8Array([+g_system.value,+g_mt.value,+g_inq.value,+g_bank.value]);
+  await api("glbl_set",{data:b64enc(d)});
+  alert("Saved. Restart the adapter to apply.");
+};
+/* ---------- system ---------- */
+document.getElementById("btnReboot").onclick=()=>confirm("Restart adapter?")&&api("sys",{cmd:"reset"});
+document.getElementById("btnSleep").onclick=()=>confirm("Enter deep sleep?")&&api("sys",{cmd:"sleep"});
+document.getElementById("btnFactory").onclick=()=>confirm("FACTORY RESET: wipes config and pairings. Continue?")&&api("sys",{cmd:"factory"});
+document.getElementById("btnOta").onclick=()=>{
+  let f=document.getElementById("otafile").files[0];if(!f)return;
+  if(!confirm("Flash "+f.name+" ("+f.size+" bytes)?"))return;
+  let x=new XMLHttpRequest();x.open("POST","/ota");
+  x.upload.onprogress=e=>{if(e.lengthComputable)document.getElementById("otabar").style.width=(100*e.loaded/e.total)+"%"};
+  x.onload=()=>{alert(x.status===200?"Update flashed — rebooting…":"OTA failed: "+x.responseText);document.getElementById("otabar").style.width="0%"};
+  x.onerror=()=>alert("OTA failed");
+  x.send(f);
+};
+/* ---------- mapping ---------- */
+let mapDev=document.getElementById("mapDev");
+mapDev.innerHTML=Array.from({length:8},(_,i)=>`<option value="${i}">Device slot ${i+1}</option>`).join("");
+let inCfg=new Uint8Array(1027);
+function padOpts(sel){return PADLBL.map((v,i)=>`<option value="${i}"${i===sel?" selected":""}>${PAD[i]} ${v}</option>`).join("")}
+function renderMap(){
+  let tb=document.getElementById("maptable");tb.innerHTML="";
+  let n=inCfg[2];
+  for(let i=0;i<n;i++){
+    let o=3+i*8,m=inCfg.slice(o,o+8),tr=document.createElement("tr");
+    tr.innerHTML=`<td><select data-k="0">${padOpts(m[0])}</select></td><td><select data-k="1">${padOpts(m[1])}</select></td><td><input type="number" data-k="2" value="${m[2]}" min="0" max="255" style="width:4.5rem"></td><td><input type="number" data-k="3" value="${m[3]}" min="0" max="135" style="width:4.5rem"></td><td><input type="number" data-k="4" value="${m[4]}" min="0" max="100" style="width:4.5rem"></td><td><input type="number" data-k="5" value="${m[5]}" min="0" max="100" style="width:4.5rem"></td><td><input type="number" data-k="6" value="${m[6]}" min="0" max="255" style="width:4.5rem"></td><td><input type="number" data-k="7" value="${m[7]}" min="0" max="255" style="width:4.5rem"></td><td><button class="btn sm dng" data-del="${i}">✕</button></td>`;
+    tr.querySelectorAll("[data-k]").forEach(el=>el.onchange=()=>{inCfg[3+i*8+(+el.dataset.k)]=+el.value});
+    tr.querySelector("[data-del]").onclick=()=>{
+      inCfg.copyWithin(3+i*8,3+(i+1)*8,3+n*8);
+      inCfg[2]--;renderMap();
+    };
+    tb.appendChild(tr);
+  }
+}
+document.getElementById("btnMapLoad").onclick=async()=>{
+  let r=await api("in_get",{dev:+mapDev.value});inCfg=b64dec(r.data);
+  document.getElementById("inDevId").value=inCfg[0];document.getElementById("inSubId").value=inCfg[1];
+  renderMap();
+};
+document.getElementById("btnMapAdd").onclick=()=>{
+  if(inCfg[2]>=128)return;inCfg.fill(0,3+inCfg[2]*8,3+(inCfg[2]+1)*8);inCfg[2]++;renderMap();
+};
+document.getElementById("btnMapSave").onclick=async()=>{
+  inCfg[0]=+inDevId.value;inCfg[1]=+inSubId.value;
+  await api("in_set",{dev:+mapDev.value,data:b64enc(inCfg)});
+  alert("Mapping saved.");
+};
+/* ---------- memory card ---------- */
+let mcImg=null;
+async function mcReadAll(prog){
+  let img=new Uint8Array(0x20000),off=0;
+  while(off<0x20000){
+    let n=Math.min(768,0x20000-off),r=await api("mc_read",{off,len:n}),d=b64dec(r.data);
+    img.set(d,off);off+=d.length;if(d.length<n)break;
+    prog(off/0x20000);
+  }
+  return img;
+}
+async function mcWriteAll(img,prog){
+  let off=0;
+  while(off<img.length){
+    let n=Math.min(768,img.length-off);
+    await api("mc_write",{off,data:b64enc(img.slice(off,off+n))});
+    off+=n;prog(off/img.length);
+  }
+}
+function mcSaves(img){
+  let saves=[];
+  for(let i=0;i<15;i++){
+    let e=img.slice(0x80+i*0x80,0x80+(i+1)*0x80);
+    if(e[0]!==0x53||e[1]!==0x43)continue;
+    let st=e[2];
+    if(st!==0x51&&st!==0xA1)continue;
+    let prod="",off=0x0A;
+    for(let j=0;j<10;j++){let c=e[off+j];if(c>=32&&c<127)prod+=String.fromCharCode(c)}
+    let title="";
+    for(let j=0x40;j<0x80;j++){let c=e[j];if(c===0)break;if(c>=32&&c<127)title+=String.fromCharCode(c)}
+    if(!title){for(let j=0x20;j<0x40;j++){let c=e[j];if(c===0)break;if(c>=32&&c<127)title+=String.fromCharCode(c)}}
+    let blocks=[i+1],link=e[4]|(e[5]<<8),safety=0;
+    while(link!==0xFFFF&&link>0&&link<16&&safety++<15){blocks.push(link);link=img[0x80+(link-1)*0x80+4]|(img[0x80+(link-1)*0x80+5]<<8)}
+    saves.push({slot:i+1,prod:prod||"—",title:title||"—",blocks,del:st===0xA1});
+  }
+  return saves;
+}
+function mcSaveExport(img,s){
+  let out=new Uint8Array(0x80+s.blocks.length*0x2000);
+  out.set(img.slice(0x80+(s.slot-1)*0x80,0x80+s.slot*0x80),0);
+  s.blocks.forEach((b,i)=>out.set(img.slice(b*0x2000,(b+1)*0x2000),0x80+i*0x2000));
+  return out;
+}
+function mcSaveDelete(img,s){
+  s.blocks.forEach(b=>{
+    let e=img.slice(0x80+(b-1)*0x80,0x80+b*0x80);
+    if(e[0]===0x53&&e[1]===0x43&&(e[2]&0x0F))e[2]=0xA0|(e[2]&0x0F);
+    img.set(e,0x80+(b-1)*0x80);
+  });
+}
+document.getElementById("btnMcDl").onclick=async()=>{
+  let bar=document.getElementById("mcbar");bar.style.width="0%";
+  mcImg=await mcReadAll(p=>bar.style.width=(100*p)+"%");
+  dl("memory_card.mcr",mcImg);bar.style.width="0%";
+};
+document.getElementById("btnMcUl").onclick=async()=>{
+  let f=document.getElementById("mcfile").files[0];if(!f)return;
+  if(f.length!==0x20000){alert("Expected 128 KiB (0x20000) image");return}
+  let img=new Uint8Array(await f.arrayBuffer()),bar=document.getElementById("mcbar");bar.style.width="0%";
+  await mcWriteAll(img,p=>bar.style.width=(100*p)+"%");mcImg=img;bar.style.width="0%";alert("Uploaded");
+};
+document.getElementById("btnMcScan").onclick=async()=>{
+  let bar=document.getElementById("mcbar");bar.style.width="0%";
+  if(!mcImg)mcImg=await mcReadAll(p=>bar.style.width=(100*p)+"%");
+  bar.style.width="0%";
+  let tb=document.getElementById("mctable");tb.innerHTML="";
+  let saves=mcSaves(mcImg);
+  if(!saves.length)tb.innerHTML=`<tr><td colspan="5" class="note">No saves found</td></tr>`;
+  for(const s of saves){
+    let tr=document.createElement("tr");
+    tr.innerHTML=`<td>${s.slot}</td><td class="mono">${esc(s.prod)}</td><td>${esc(s.title)}${s.del?' <span class="tag off">deleted</span>':""}</td><td>${s.blocks.length}</td><td><button class="btn sm" data-exp="${s.slot}">Export</button> <button class="btn sm dng" data-rm="${s.slot}">Delete</button></td>`;
+    tb.appendChild(tr);
+  }
+  tb.querySelectorAll("[data-exp]").forEach(b=>b.onclick=()=>{
+    let s=saves.find(x=>x.slot===+b.dataset.exp);
+    dl((s.prod.replace(/[^A-Za-z0-9_-]/g,"")||"save")+".mcs",mcSaveExport(mcImg,s));
+  });
+  tb.querySelectorAll("[data-rm]").forEach(b=>b.onclick=async()=>{
+    let s=saves.find(x=>x.slot===+b.dataset.rm);
+    if(!confirm("Delete save "+s.prod+"?"))return;
+    mcSaveDelete(mcImg,s);
+    let bar=document.getElementById("mcbar");
+    await mcWriteAll(mcImg,p=>bar.style.width=(100*p)+"%");
+    bar.style.width="0%";document.getElementById("btnMcScan").click();
+  });
+};
+/* ---------- filesystem ---------- */
+async function refreshDir(){
+  try{
+    let r=await api("dir"),tb=document.getElementById("filetable");tb.innerHTML="";
+    for(const f of r.files){
+      let tr=document.createElement("tr");
+      tr.innerHTML=`<td class="mono">${esc(f)}</td><td style="text-align:right"><button class="btn sm dng" data-f="${esc(f)}">Delete</button></td>`;
+      tb.appendChild(tr);
+    }
+    if(!r.files.length)tb.innerHTML=`<tr><td class="note">Empty</td></tr>`;
+    tb.querySelectorAll("[data-f]").forEach(b=>b.onclick=async()=>{if(confirm("Delete "+b.dataset.f+"?")){await api("del",{file:b.dataset.f});refreshDir()}});
+  }catch(e){}
+}
+document.getElementById("btnDirRefresh").onclick=refreshDir;
+conn();
+</script>
+</body>
+</html>

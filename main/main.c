@@ -27,6 +27,7 @@
 #include "system/manager.h"
 #include "tests/ws_srv.h"
 #include "tests/coverage.h"
+#include "net/webui.h"
 #include "sdkconfig.h"
 
 static uint32_t chip_package = EFUSE_RD_CHIP_VER_PKG_ESP32D0WDQ6;
@@ -133,6 +134,13 @@ static void wl_init_task(void *arg) {
 
 #ifdef CONFIG_BLUERETRO_WS_CMDS
     ws_srv_init();
+#endif
+
+#ifdef CONFIG_BLUERETRO_WEBUI
+    if (webui_init()) {
+        err_led_set();
+        printf("WebUI init fail!\n");
+    }
 #endif
 
     if (ota_state == ESP_OTA_IMG_PENDING_VERIFY) {

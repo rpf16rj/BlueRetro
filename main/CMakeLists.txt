@@ -89,6 +89,13 @@ set(srcs
     "zephyr/atomic.S"
 )
 
+if(CONFIG_BLUERETRO_WEBUI)
+    list(APPEND srcs
+        "net/webui.c"
+    )
+    set(embed_files "net/index.html")
+endif()
+
 if(CONFIG_BLUERETRO_WS_CMDS)
     list(APPEND srcs
         "tests/ws_srv.c"
@@ -106,6 +113,7 @@ idf_component_register(
     SRCS "${srcs}" "${cov_srcs}"
     PRIV_INCLUDE_DIRS "."
     LDFRAGMENTS linker.lf
+    EMBED_FILES "${embed_files}"
 )
 
 target_compile_options(${COMPONENT_LIB} PRIVATE -Wno-address-of-packed-member)

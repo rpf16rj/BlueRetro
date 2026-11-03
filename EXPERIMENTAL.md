@@ -29,14 +29,28 @@ The DualSense output report now selects the newer "v2" haptics mode instead of D
 
 This mirrors the recipe used by the Linux `hid-playstation` driver: the two actuator bytes drive the DualSense voice-coil haptics directly, giving finer and more precise rumble. Requires DualSense firmware >= 2.21 (bundled with PS5 updates since 2021; DualSense Edge always supports it).
 
-### 3. WiFi configuration web UI (experimental, WIP)
+### 3. WiFi configuration web UI (`main/net/`, `CONFIG_BLUERETRO_WEBUI`)
 
-Work in progress: the adapter exposes a WiFi access point (`BlueRetro-XXXX`) with an embedded web page at `http://192.168.4.1` so configuration works even without a paired Bluetooth client or internet access:
+The adapter now starts a WiFi access point **always on**, alongside Bluetooth — no pairing or internet needed to configure it:
 
-- view firmware info, connected/paired controllers;
-- read/write global, output and input (mapping) configuration;
-- memory card browser: list, download and upload save files;
-- system commands: reset, deep sleep, factory reset, OTA update.
+- **SSID**: `BlueRetro-XXXX` (XXXX = last bytes of the adapter MAC)
+- **Password**: `blueretro`
+- **URL**: `http://192.168.4.1`
+
+The embedded page (single-file `index.html` embedded via `EMBED_FILES`) talks to a WebSocket JSON API (`/ws`) backed by the same internal state as the BLE config service in `att_cfg.c`. Features:
+
+- Firmware info (version, project, BD addr, detected system, game id);
+- Controllers: list paired/connected devices with name, type, output slot, address and status; start pairing; disconnect a device; forget all pairings;
+- Output ports: device mode (GamePad/GamePadAlt/KB/Mouse) and accessory mode (None/Memory/Rumble/Memory+Rumble) per port;
+- Global config: system, multitap, inquiry mode, bank select;
+- Button mapping: per-device map editor (source/dest buttons, thresholds, deadzone, turbo);
+- Memory card: download/upload the raw 128 KiB image (`.mcr`), list PS1 save blocks (product code, title, block count), export a single save (`.mcs`), delete a save;
+- Filesystem browser (`/fs`) with delete;
+- System: restart, deep sleep, factory reset, and **HTTP OTA** (`POST /ota`).
+
+New `partitions.csv`: two 1.3 MB app slots (factory + ota_0) instead of three 1 MB slots, since WiFi+HTTP push the image over 1 MB. **The first flash of this build must be done over serial** (`@flash_args` / `idf.py flash`), because the partition layout changed — afterwards, OTA via the web UI works normally.
+
+WiFi coexistence note: ESP32 WiFi and Bluetooth share the same radio. The AP is always up; if you notice BT latency issues while the web UI is open, close the page (the WS connection is what generates most of the traffic).
 
 ## Building
 

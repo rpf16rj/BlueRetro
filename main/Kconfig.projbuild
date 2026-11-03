@@ -130,6 +130,12 @@ menu "BlueRetro"
 
     endchoice
 
+    config BLUERETRO_WEBUI
+        bool "Enable WiFi AP embedded web configuration UI"
+        help
+            Starts a WiFi access point (BlueRetro-XXXX) serving an
+            embedded config page at http://192.168.4.1
+
     menu "Debug"
 
         config BLUERETRO_QEMU
