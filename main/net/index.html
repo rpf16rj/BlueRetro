@@ -66,6 +66,18 @@ footer{padding:1rem;text-align:center;color:var(--mut);font-size:.75rem}
 <div class="panel"><div class="pt"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg>Firmware</div>
 <div class="pb"><div class="kv" id="fwinfo"></div></div></div>
 
+<div class="panel"><div class="pt"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>WiFi network</div>
+<div class="pb">
+<div class="kv" id="wifistat"></div>
+<div class="row"><button class="btn pri" id="btnScan">Scan networks</button><button class="btn dng" id="btnWifiForget">Forget network</button></div>
+<div class="scrollx"><table><tbody id="wifitable"></tbody></table></div>
+<div class="row" id="wificonn" style="display:none">
+<input type="password" id="wifipass" placeholder="Password" style="flex:1">
+<button class="btn pri" id="btnJoin">Connect</button>
+</div>
+<div class="note">The BlueRetro-XXXX network stays open after joining your home WiFi — the adapter is then reachable both at 192.168.4.1 and at the DHCP address shown above.</div>
+</div></div>
+
 <div class="panel wide"><div class="pt"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 12h4m-2-2v4m7-4h.01M18 13h.01M17.32 5H6.68a5 5 0 0 0-4.9 6.05l.82 4.1a3 3 0 0 0 5.32 1.63l1.5-1.78h5.16l1.5 1.78a3 3 0 0 0 5.32-1.63l.82-4.1A5 5 0 0 0 17.32 5z"/></svg>Controllers</div>
 <div class="pb">
 <div class="row">
@@ -173,6 +185,7 @@ async function boot(){
     document.getElementById("fwver").textContent=info.name+" "+info.fw;
     let kv=document.getElementById("fwinfo");
     kv.innerHTML=`<b>Device</b><span>${esc(info.name)}</span><b>Version</b><span>${esc(info.fw)}</span><b>ABI</b><span>${info.abi}</span><b>BD addr</b><span class="mono">${esc(info.bdaddr)}</span><b>System</b><span>${SYS[info.sysid]||info.sysid}</span><b>Game ID</b><span class="mono">${esc(info.gameid||"-")}</span><b>Cfg src</b><span>${info.cfgsrc?"game":"default"}</span>`;
+    wifiStat(info);
     refreshDevs();loadGlobal();loadOut();refreshDir();
   }catch(e){}
 }
@@ -191,6 +204,37 @@ async function refreshDevs(){
     tb.querySelectorAll("[data-disc]").forEach(b=>b.onclick=async()=>{await api("dev_disc",{dev:+b.dataset.disc});setTimeout(refreshDevs,600)});
   }catch(e){}
 }
+/* ---------- wifi ---------- */
+let joinSsid=null;
+function wifiStat(r){
+  let el=document.getElementById("wifistat");
+  el.innerHTML=`<b>Status</b><span>${r.sta_connected?'<span class="tag on">connected</span>':'<span class="tag off">not connected</span>'}</span>`+
+    (r.sta_ssid?`<b>Network</b><span>${esc(r.sta_ssid)}${r.rssi?" ("+r.rssi+" dBm)":""}</span>`:"")+
+    `<b>IP</b><span class="mono">${esc(r.sta_ip||"-")}</span>`;
+}
+document.getElementById("btnScan").onclick=async()=>{
+  let tb=document.getElementById("wifitable");tb.innerHTML=`<tr><td class="note">Scanning…</td></tr>`;
+  let r=await api("wifi_scan");wifiStat(r);tb.innerHTML="";
+  for(const a of r.aps){
+    let tr=document.createElement("tr");
+    tr.innerHTML=`<td>${esc(a.ssid)}</td><td>${a.rssi} dBm</td><td>${a.auth===0?"open":"🔒"}</td><td style="text-align:right"><button class="btn sm" data-ssid="${esc(a.ssid)}">Join</button></td>`;
+    tb.appendChild(tr);
+  }
+  tb.querySelectorAll("[data-ssid]").forEach(b=>b.onclick=()=>{
+    joinSsid=b.dataset.ssid;document.getElementById("wificonn").style.display="flex";
+    document.getElementById("wifipass").placeholder=`Password for ${joinSsid}`;
+    document.getElementById("wifipass").focus();
+  });
+};
+document.getElementById("btnJoin").onclick=async()=>{
+  await api("wifi_connect",{ssid:joinSsid,pass:document.getElementById("wifipass").value});
+  document.getElementById("wificonn").style.display="none";
+  setTimeout(async()=>{try{wifiStat(await api("wifi_status"))}catch(e){}},3000);
+};
+document.getElementById("btnWifiForget").onclick=async()=>{
+  if(!confirm("Forget saved WiFi and disconnect?"))return;
+  await api("wifi_forget");wifiStat(await api("wifi_status"));
+};
 document.getElementById("btnPair").onclick=async()=>{await api("pair");setTimeout(refreshDevs,800)};
 document.getElementById("btnRefreshDevs").onclick=refreshDevs;
 document.getElementById("btnForget").onclick=async()=>{

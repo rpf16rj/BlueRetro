@@ -82,3 +82,21 @@ Output: `build/BlueRetro_hw1_playstation.bin`
 ## Tested
 
 - DS4 + DualSense on PS1: pairing, all buttons, rumble, virtual memory card simultaneously.
+
+## WiFi WebUI status: ABANDONED (heap-starved on ESP32 classic)
+
+The embedded WiFi WebUI (this branch) reached AP+STA+BT coexistence but remains
+unstable: any WebSocket request eventually triggers
+`assert failed: tlsf_free tlsf.c:630 (!block_is_free(block))` inside
+`cJSON_Delete` called from `handle_ws_frame` — most likely heap corruption
+under the very tight RAM budget (~25-55 KB free after WiFi+BT init).
+
+What was tried: SW coexistence, reduced WiFi/BTDM buffers, lazy 128KB
+memory-card allocation (mc_init_mem idempotent + MALLOC_CAP_8BIT),
+file-based MC browsing, fast WiFi scan dwell, captive DNS portal,
+httpd stack tuning, single-call ws_handler. The device still reboots
+seconds after the first HTTP/WS traffic.
+
+Keeping this work on branch `feature/wifi-webui` for reference.
+Recommended future direction: ESP32-S3/PSRAM target (BlueRetro HW2),
+or a much lighter protocol than cJSON-over-WebSocket.

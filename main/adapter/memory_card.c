@@ -21,6 +21,8 @@ SOC_RESERVE_MEMORY_REGION(0x3FFE7D98, 0x3FFE7E28, bad_region);
 
 static uint8_t *mc_buffer[MC_BUFFER_BLOCK_CNT] = {0};
 static esp_timer_handle_t mc_timer_hdl = NULL;
+static esp_timer_handle_t mc_lazy_timer = NULL;
+static volatile int32_t mc_lazy_pending = 0;
 static int32_t mc_block_state = 0;
 static bool mc_ready = false;
 
@@ -131,12 +133,13 @@ static inline void mc_store_cb(void *arg) {
 
 int32_t mc_init_mem(void) {
     for (uint32_t i = 0; i < MC_BUFFER_BLOCK_CNT; i++) {
-        mc_buffer[i] = heap_caps_malloc(MC_BUFFER_BLOCK_SIZE, MALLOC_CAP_DMA);
-
         if (mc_buffer[i] == NULL) {
-            printf("# %s mc_buffer[%ld] alloc fail\n", __FUNCTION__, i);
-            heap_caps_dump_all();
-            return -1;
+            mc_buffer[i] = heap_caps_malloc(MC_BUFFER_BLOCK_SIZE, MALLOC_CAP_8BIT);
+
+            if (mc_buffer[i] == NULL) {
+                printf("# %s mc_buffer[%ld] alloc fail, heap %ld\n", __FUNCTION__, i, esp_get_free_heap_size());
+                return -1;
+            }
         }
     }
 
@@ -192,6 +195,36 @@ void IRAM_ATTR mc_write(uint32_t addr, uint8_t *data, uint32_t size) {
 
 uint8_t IRAM_ATTR *mc_get_ptr(uint32_t addr) {
     return mc_buffer[addr >> 12] + (addr & 0xFFF);
+}
+
+/* Called from SPI IRQ context: schedule lazy init, IRAM-safe */
+void IRAM_ATTR mc_lazy_request(void) {
+    mc_lazy_pending = 1;
+}
+
+/* esp_timer task context: safe for file ops / wifi shutdown */
+static void mc_lazy_hdlr(void *arg) {
+    if (mc_lazy_pending) {
+        mc_lazy_pending = 0;
+        if (mc_init_mem() == 0 && mc_init() == 0) {
+            printf("# %s: lazy init done\n", __FUNCTION__);
+            esp_timer_stop(mc_lazy_timer);
+        }
+        else {
+            printf("# %s: lazy init retry, heap %ld\n", __FUNCTION__, esp_get_free_heap_size());
+        }
+    }
+}
+
+/* WEBUI builds: defer 128KB buffer alloc until first MC access (0x81) */
+int32_t mc_lazy_init(void) {
+    const esp_timer_create_args_t lazy_args = {
+        .callback = &mc_lazy_hdlr,
+        .arg = NULL,
+        .name = "mc_lazy"
+    };
+    esp_timer_create(&lazy_args, &mc_lazy_timer);
+    return esp_timer_start_periodic(mc_lazy_timer, 250000);
 }
 
 uint32_t IRAM_ATTR mc_get_state(void) {

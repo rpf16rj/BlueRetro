@@ -19,5 +19,7 @@ void mc_write(uint32_t addr, uint8_t *data, uint32_t size);
 uint8_t *mc_get_ptr(uint32_t addr);
 uint32_t mc_get_state(void);
 bool mc_get_ready(void);
+void mc_lazy_request(void);
+int32_t mc_lazy_init(void);
 
 #endif /* _MEMORY_CARD_H_ */

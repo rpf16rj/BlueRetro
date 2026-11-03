@@ -8,6 +8,8 @@
 #include <freertos/task.h>
 #include <nvs_flash.h>
 #include <esp_ota_ops.h>
+#include <esp32/rom/gpio.h>
+#include <soc/gpio_reg.h>
 #include <esp32/rom/ets_sys.h>
 #include <soc/efuse_reg.h>
 #include <esp_efuse.h>
@@ -112,7 +114,19 @@ static void wl_init_task(void *arg) {
     ESP_ERROR_CHECK(ret);
 
     config_init(DEFAULT_CFG);
+#ifdef CONFIG_BLUERETRO_WEBUI
+    mc_lazy_init(); /* 128KB mc_buffer deferred until first MC access; WiFi freed then */
+#else
     mc_init_mem();
+#endif
+
+#ifdef CONFIG_BLUERETRO_WEBUI
+    /* Init WiFi before BT so both coexist (BT runs classic-only to free BLE heap) */
+    if (webui_init()) {
+        err_led_set();
+        printf("WebUI init fail!\n");
+    }
+#endif
 
 #ifndef CONFIG_BLUERETRO_BT_DISABLE
     if (bt_host_init()) {
@@ -127,20 +141,15 @@ static void wl_init_task(void *arg) {
     }
 
 #ifndef CONFIG_BLUERETRO_QEMU
+#ifndef CONFIG_BLUERETRO_WEBUI
     mc_init();
+#endif
 
     sys_mgr_init(chip_package);
 #endif
 
 #ifdef CONFIG_BLUERETRO_WS_CMDS
     ws_srv_init();
-#endif
-
-#ifdef CONFIG_BLUERETRO_WEBUI
-    if (webui_init()) {
-        err_led_set();
-        printf("WebUI init fail!\n");
-    }
 #endif
 
     if (ota_state == ESP_OTA_IMG_PENDING_VERIFY) {
@@ -161,5 +170,5 @@ void app_main()
     adapter_init();
 
     start_app_cpu(wired_init_task);
-    xTaskCreatePinnedToCore(wl_init_task, "wl_init_task", 2560, NULL, 10, NULL, 0);
+    xTaskCreatePinnedToCore(wl_init_task, "wl_init_task", 8192, NULL, 10, NULL, 0);
 }

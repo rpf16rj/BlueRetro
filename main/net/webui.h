@@ -6,6 +6,8 @@
 #ifndef _WEBUI_H_
 #define _WEBUI_H_
 
+extern int32_t webui_cfg_mode;
+
 int32_t webui_init(void);
 
 #endif /* _WEBUI_H_ */

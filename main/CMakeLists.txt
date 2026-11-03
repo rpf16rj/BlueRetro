@@ -114,6 +114,23 @@ idf_component_register(
     PRIV_INCLUDE_DIRS "."
     LDFRAGMENTS linker.lf
     EMBED_FILES "${embed_files}"
+    PRIV_REQUIRES esp_coex esp_wifi esp_http_server json
+        esp_driver_gpio esp_driver_uart esp_driver_spi esp_driver_ledc
+        esp_driver_i2s esp_driver_rmt esp_driver_pcnt esp_driver_gptimer
+        esp_driver_i2c esp_driver_sdio esp_driver_sdmmc esp_driver_sdspi
+        esp_driver_mcpwm esp_driver_parlio esp_driver_twai esp_driver_dac
+        esp_driver_tsens esp_driver_touch_sens esp_driver_usb_serial_jtag
+        spiffs nvs_flash fatfs app_update esp_timer esp_event esp_netif
+        lwip vfs esp_common esp_ringbuf soc driver bt freertos queue_bss
+        efuse esp_system esp_hw_support esp_rom esp_mm esp_psram heap log
+        hal newlib pthread spi_flash esp-tls mbedtls http_parser
+        tcp_transport wpa_supplicant wifi_provisioning protocomm
+        protobuf-c mqtt espcoredump esp_gdbstub esp_hid usb console ulp
+        unity cmock cxx sdmmc rt wear_levelling esp_local_ctrl
+        esp_https_server esp_https_ota esp_lcd esp_adc esp_eth esp_phy
+        esp_pm esp_security perfmon esp_vfs_console bootloader
+        bootloader_support nvs_sec_provider esp_app_format idf_test
+        xtensa app_trace ieee802154 openthread esp_vfs_console
 )
 
 target_compile_options(${COMPONENT_LIB} PRIVATE -Wno-address-of-packed-member)
